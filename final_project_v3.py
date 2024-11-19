@@ -200,7 +200,7 @@ def main():
     if len(df_filtered) > 0:
 
         # query 1: how many nuclear bombs did selected countries detonate during the selected time period?
-        st.subheader("How many nuclear bombs within selected parameters did countries detonate (all time)?")
+        st.subheader("How many nuclear bombs within selected parameters did countries detonate?")
         st.write("")
         st.pyplot(generate_pie_chart(country_frequency(df_filtered, countries),countries))
         st.pyplot(generate_bar_chart(country_frequency(df_filtered, countries),countries))
