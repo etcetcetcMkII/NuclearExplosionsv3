@@ -2,7 +2,7 @@
 Name: Lucas Daignault
 CS230: Section 05
 Data: Nuclear Explosions 1945-1998
-URL: XXXXX
+URL: https://nuclearexplosionsv3-ba2d3vexvwircmj7b3ymtv.streamlit.app/
 
 Description: This program provides data visualization which helps the user learn about the nuclear testing and use
 of several nuclear-armed countries. By filtering based on country, year, blast yield, etc., the user
@@ -47,27 +47,35 @@ def all_countries(df):
 
 # count the frequency of detonations by country
 def country_frequency(df, countries):
-    # call all countries, check if they are in specific country, take shape, do this for all countries
+    # first part of the list comp filters dataset to only take countries included in the multiselect (and determines length AKA count). Second part of the list comp adds the count to the list
     country_count_list = [df.loc[df["WEAPON SOURCE COUNTRY"].isin([country])].shape[0] for country in countries]  # PY4     >> Syntax inspiration is from the "CS 230 Final Project Example" video
     return country_count_list
 
 # creates a pie chart which breaks down detonations by country
 def generate_pie_chart(counts, countries):      # [VIZ1]
     plt.figure()
-    plt.pie(counts, labels=countries, autopct="%1.1f%%", colors=colors)
+    plt.pie(counts, autopct="%1.1f%%", labeldistance=1.1, colors=colors)        # labeldistance from https://www.analyticsvidhya.com/blog/2024/02/pie-chart-matplotlib/#:~:text=To%20add%20labels%20and%20percentages,the%20percentages%20should%20be%20displayed.
     plt.title("Detonations by Country")
-    # plt.legend(wedges, countries, title="Countries", bbox_to_anchor=(1, 1))       # (horizontal, vertical)
+    plt.legend(countries, title="Countries", bbox_to_anchor=(1, 1))       # (horizontal, vertical)
     # plt.show()
     return plt
 
 # creates a bar chart which breaks down detonations by country
 def generate_bar_chart(counts, countries):      # [VIZ2]
-    plt.figure()
-    plt.bar(countries, counts, color=colors)
+    fig = plt.figure()
+    bars = plt.bar(countries, counts, color=colors)
+
+    # data labels (based on CS 230 course video)
+    for i, bar in enumerate(bars):
+        formatted_value = f"{counts[i]:,.0f}"
+        plt.annotate(formatted_value, xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                     xytext=(0, 3), textcoords='offset points', ha='center', va='bottom')
+
     plt.title("Detonations by Country")
     plt.ylabel("Number of Detonations")
+
     # plt.show()
-    return plt
+    return fig
 
 # creates a dictionary with keys = countries and values = yields
 def country_yields(df):
@@ -77,6 +85,7 @@ def country_yields(df):
 
     # we need to combine the two above lists into a dict
     dict = {}       # [PY5]
+
     # initialize the dict by adding each country as a key
     for country in countries:
         dict[country] = []  # create  dictionary with countries as keys so that we can then append a the value
@@ -97,16 +106,24 @@ def country_max_yield(dict_yields):
 
 # creates bar chart which graphs the above-determined highest yield from each country
 def generate_max_bar_chart(dict_yields):
-    plt.figure()
+    fig = plt.figure()
 
     x = dict_yields.keys()
     y = dict_yields.values()
+    num = list(y)
 
-    plt.bar(x, y, color="tab:red")
+    bars = plt.bar(x, y, color="tab:red")
+
+    # data labels
+    for i, bar in enumerate(bars):
+        formatted_value = f"{num[i]:,.0f}"
+        plt.annotate(formatted_value, xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                     xytext=(0, 3), textcoords='offset points', ha='center', va='bottom')
+
     plt.title("Max Detonation Yield by Country")
     plt.ylabel("Detonation Yield (kilotons of TNT)")
     # plt.show()
-    return plt
+    return fig
 
 # sorts the df by yield size, in descending order. pulls and returns the top five rows, or the top five largest yields
 def largest_yield_table(df):
@@ -124,7 +141,7 @@ def generate_map(df):       # [MAP]
                          hover_name="Data.Name",
                          hover_data=["WEAPON SOURCE COUNTRY", "Data.Yeild.Upper", "Date.Year"],
                          color="Date.Year",
-                         color_continuous_scale="Rainbow",       # rainbow
+                         color_continuous_scale="Rainbow",      # there are several other themes which can be used, but Rainbow was the most visible
                          mapbox_style="carto-positron")        # this code is from the plotly documentation (https://plotly.com/python/scatter-plots-on-maps/)
     fig.update_layout(height=700,
                       mapbox_zoom=1,
@@ -132,7 +149,7 @@ def generate_map(df):       # [MAP]
     return fig
 
 # creates a line chart which shows the number of atomic bombs tested over time. includes tool tips and annotations
-# code for generate_line_chart based on code from ChatGPT. See section 1 of accompanying doccument.
+# code for generate_line_chart based on code from ChatGPT. See section 1 of accompanying document.
 def generate_line_chart(df):
     # create a pivot table which shows the number of detonations per year
     pivot_table = df.pivot_table(index='Date.Year', aggfunc='size', columns=None, fill_value=0)     # [DA6]
@@ -183,7 +200,8 @@ def main():
     # title & header section
     st.title(font_color("Nuclear Bomb Detonations Data Analysis"))
     st.write(font_color("By Lucas Daignault, F24 CS 230", "red"))
-    st.subheader("")
+    st.write("Detonation yield is measured in kilotons of TNT. One kiloton = 1,000 tons of TNT. 1 megaton = 1,000 kilotons, or 1,000,000 tons of TNT. For reference, the Allies dropped approximately 2.7 million tons of TNT on Europe during WWII. ")
+    st.write("")
 
     # sidebar
     st.sidebar.write("Please choose your options to display data")      # [ST4]
